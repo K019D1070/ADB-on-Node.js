@@ -1,0 +1,4 @@
+#依存パッケージ群
+/node_modules
+#adb bin
+/adb
