@@ -4,7 +4,6 @@ import * as rl from 'readline';
 
 process.stdin.setEncoding("utf8");
 const adbPath = config.get("adbPath");
-const defaultSource = config.get("defaultSource");
 const defaultIP = config.get("IPAddress");
 
 const IP = /(\[*[0-z.:]+\]*):([0-9]{1,6})/; // IPwithPort
@@ -132,7 +131,7 @@ export default class ADB{
       callback(chunk);
     });
   }
-  setOnConnecting(callback){
+  setOnConnected(callback){
       this.onConnected = callback;
   }
   connectCheck(){

@@ -1,12 +1,15 @@
+import config from 'config';
 import ADB from "./ADB.mjs";
 
-args = [
+
+const defaultSource = config.get("defaultSource");
+const args = [
   "shell",
   "ls",
   defaultSource
 ];
 const adb = new ADB();
-adb.setConnected(()=>{
+adb.setOnConnected(()=>{
   //adb.shellSpawn();
 });
 /*
