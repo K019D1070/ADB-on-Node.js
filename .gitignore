@@ -2,3 +2,5 @@
 /node_modules
 #adb bin
 /adb
+#いらん
+.vscode
