@@ -22,33 +22,69 @@ class ADB{
   activeSubprocess={
     pair:null
   }
-  adbStatus={
-    paired: false,
-    connected: false,
-    ready: false,
+  adbStatus = {
     checkInterval: null,
     host: null
   }
+  inputInterface = null;
   constructor(){
-    let IPPortPair = rl.createInterface({
+    this.inputInterface = rl.createInterface({
       input: process.stdin,
       output: process.stdout
     });
     const connected = ()=>{
-      this.adbStatus.paired = this.adbStatus.connected = this.adbStatus.ready = true;
-      IPPortPair.close();
       clearInterval(this.adbStatus.checkInterval);
+      this.inputInterface.close();
       console.log("Connected.");
     };
     this.connectCheck(connected, ()=>{
       this.adbStatus.checkInterval = setInterval(()=>{this.connectCheck(connected);},500);
       console.log("Attached devices were nothing.");
       console.log("Connect Android by USB cable.");
-      console.log("Or if you want to use wireless debuging, enter to pair [IP address]:[port] [pair code(6 digit)]");
-      console.log("(When you just connect, just enter [IP address]:[port])");
-      IPPortPair.prompt();
-      IPPortPair.on("line", (input)=>{
-        let match = input.match(IP);
+      console.log("Or setup wireless debuging. Setup wizard will start.");
+      console.log("(You can connect android by USB cable during setup wizard.)");
+      this.choice();
+    });
+  }
+  choice(){
+    this.inputInterface.question("Do you have already pairing?(normally n) y/n ", (c)=>{
+      this.inputInterface.close();
+      switch(c){
+        case "y":
+          this.connect();
+          break;
+        case "n":
+          this.pairing();
+          this.connect();
+          break;
+        default:
+          this.choice();
+          break;
+      }
+    });
+  }
+  connect(IPAddress = this.adbStatus.host, port){
+    console.log("Enter to connect [port](It is different port to pairing)");
+    /*
+    let match = input.match(IP);
+    case match != null && !this.adbStatus.connected:
+      console.log(this.shellExecSync("./adb connect "+ input+ " 1>&1 2>&1").toString());
+      break;
+    case this.adbStatus.host != null && !this.adbStatus.paired:
+      console.log(this.shellExecSync("./adb connect "+ this.adbStatus.host+ ":"+ input+ " 1>&1 2>&1").toString());
+      break;
+      */
+  }
+  pairing(){
+    return new Promise((paired)=>{
+      console.log("Enter [IP address]:[port] [pair code]");
+      this.inputInterface = rl.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+      this.inputInterface.prompt();
+      this.inputInterface.on("line", (input)=>{
+        console.log(input);
         switch(true){
           case input.match(IPP) != null:
             this.adbStatus.host = input.match(IPP)[1] || null;
@@ -56,20 +92,13 @@ class ADB{
               let strStdout = chunk.toString();
               console.log("[adb]:" + chunk.toString());
               if(strStdout.match(/Successfully/)){
-                console.log("Enter to connect [port](It is different port to pairing)");
+                paired();
+                this.inputInterface.close();
               }else{
                 this.adbStatus.host = null;
               }
             });
             break;
-          ////////////////////////////////////////////
-          //コード改変時注意
-          case match  != null:
-            this.adbStatus.host = match[1] || null;
-          case this.adbStatus.host != null || match != null:
-            console.log(this.shellExecSync("./adb connect "+ this.adbStatus.host+ ":"+ input+ " 1>&1 2>&1").toString());
-            break;
-          ////////////////////////////////////////////
           case this.activeSubprocess.pair != null:
             this.activeSubprocess.pair.subProcess.stdin.write(input+"\n");
             break;
@@ -77,10 +106,11 @@ class ADB{
       });
     });
   }
+  /*
   ls(){
     const ls = cp.execSync("./adb " + this.args.join( " " ), this.options);
     const remoteFiles = ls.toString().split("\n");
-  }
+  }*/
   shellExecSync(cmd){
     try{
       var pinger = cp.execSync(cmd, this.options);
