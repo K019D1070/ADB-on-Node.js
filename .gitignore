@@ -3,5 +3,5 @@
 #adb bin
 /adb
 #いらん
-./.vscode
-./workspace.code-workspace
+.vscode
+workspace.code-workspace
