@@ -7,7 +7,7 @@ const adbPath = config.get("adbPath");
 const defaultIP = config.get("IPAddress");
 
 const IP = /(\[*[0-z.:]+\]*):([0-9]{1,6})/; // IPwithPort
-export default class ADB{  
+export default class ADB{
   options = {
     cwd:adbPath
   }
@@ -30,6 +30,7 @@ export default class ADB{
       clearInterval(this.checkInterval);
       this.inputInterface.pause();
       console.log("Connected.");
+      this.onConnected();
     };
     this.connectCheck().then(connected, ()=>{
       this.checkInterval = setInterval(()=>{
@@ -95,7 +96,7 @@ export default class ADB{
         switch(true){
           case match != null:
             this.adbStatus.host = match[1];
-            this.shellSpawn(["./adb",["pair"].concat(input.split(" ")), this.options], (chunk)=>{
+            this.shellSpawn(["./adb", ["pair"].concat(input.split(" ")), this.options], (chunk)=>{
               let strStdout = chunk.toString();
               console.log("[adb]:" + chunk.toString());
               if(strStdout.match(/Successfully/)){
@@ -113,16 +114,16 @@ export default class ADB{
       });
     });
   }
-  shellExecSync(cmd){
+  shellExecSync(cmd, options=this.options){
     try{
-      var pinger = cp.execSync(cmd, this.options);
+      var pinger = cp.execSync(cmd, options);
     }catch(err){
       var pinger = err;
     }finally{
       return pinger;
     }
   }
-  shellSpawn([cmd, args, options], callback){
+  shellSpawn([cmd, args, options=this.options], callback){
     this.activeSubprocess.pair = cp.spawn(cmd, args, options)
     this.activeSubprocess.pair.stdout.on("data", (chunk)=>{
       callback(chunk);
