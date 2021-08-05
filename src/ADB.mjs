@@ -16,7 +16,9 @@ export default class ADB{
   }
   adbStatus = {
     host: defaultIP,
-    port: null
+    port: null,
+    connected: false,
+    device: null
   }
   inputInterface = null;
   checkInterval = null;
@@ -30,6 +32,7 @@ export default class ADB{
       clearInterval(this.checkInterval);
       this.inputInterface.pause();
       console.log("Connected.");
+      this.adbStatus.connected = true;
       this.onConnected();
     };
     this.connectCheck().then(connected, ()=>{
@@ -114,6 +117,9 @@ export default class ADB{
       });
     });
   }
+  adbExecSync(args, options=this.options){
+    return this.shellExecSync(`./adb -s ${this.adbStatus.device} ${args}`, options);
+  }
   shellExecSync(cmd, options=this.options){
     try{
       var pinger = cp.execSync(cmd, options);
@@ -123,8 +129,11 @@ export default class ADB{
       return pinger;
     }
   }
+  adbSpawn([args, options=this.options], callback){
+    this.shellSpawn(["./adb", ["-s", this.adbStatus.device].concat(args), options], callback)
+  }
   shellSpawn([cmd, args, options=this.options], callback){
-    this.activeSubprocess.pair = cp.spawn(cmd, args, options)
+    this.activeSubprocess.pair = cp.spawn(cmd, args, options);
     this.activeSubprocess.pair.stdout.on("data", (chunk)=>{
       callback(chunk);
     });
@@ -133,19 +142,56 @@ export default class ADB{
     });
   }
   setOnConnected(callback){
-      this.onConnected = callback;
+      if(this.adbStatus.connected){
+        callback();
+      }else{
+        this.onConnected = callback;
+      }
   }
   connectCheck(){
     return new Promise((connected, unconnected)=>{
-      if(this.pinger()){
-        connected();
-      }else{
+      let strStdout = this.shellExecSync("./adb devices").toString();
+      let devices = [...strStdout.matchAll(/([0-z.:\[\]]+)\t(?:device)\n/g)];
+      if(devices.length > 0){
+        new Promise((choiced)=>{
+          if(devices.length == 1){
+            this.adbStatus.device = devices[0][1];
+            choiced();
+          }else{
+            console.log("There are many connected adb devices.");
+            console.log("[adb]:"+strStdout);
+            let n = 0;
+            devices.forEach((device)=>{
+              console.log(`[${n++}]` + device[1]);
+            });
+            let q = ()=>{
+              this.inputInterface.question(`Choose device[0-${devices.length- 1}]`, (input)=>{
+                if(devices[input] == undefined){
+                  console.log("You entered wrong parameter.");
+                  this.inputInterface.pause();
+                  q();
+                  return;
+                }
+                this.adbStatus.device = devices[input][1];
+                choiced();
+              });
+            };
+            q();
+          }
+        }).then(()=>{  
+          if(this.pinger()){
+            connected();
+          }else{
+            unconnected();
+          }
+        });
+      }else{  
         unconnected();
       }
     });
   }
   pinger(){
-    var pinger = this.shellExecSync("./adb shell echo \"connection test\" 1>&1 2>&1");
+    var pinger = this.adbExecSync("shell echo \"connection test\" 1>&1 2>&1");
     return pinger.toString().search(/failed/) == -1;
   }
 }
