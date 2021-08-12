@@ -1,4 +1,6 @@
 {
-    "adbPath":"./adb/",
-    "IPAddress": "192.168.1.90"
+  "adbPath":"./adb/",
+  "adbName":"adb",
+  "IPAddress": "192.168.1.90",
+  "maxQue": 10
 }
