@@ -59,6 +59,7 @@ process.on('SIGINT', function() {
 pull.on("message",(message)=>{
   switch(message.type){
     case "status":
+      deadMan = Date.now();
       prg.generate(message);
       prg.display();
       if(message.message.length == 0){
