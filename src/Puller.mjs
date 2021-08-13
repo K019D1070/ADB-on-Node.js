@@ -17,6 +17,7 @@ import ADB from "./ADB.mjs";
 
 export default class Pull{
   mq = config.get("maxQue");
+  path = config.get("path");
   do = false;
   constructor(adbopt){
     this.que = [];
@@ -40,7 +41,7 @@ export default class Pull{
   }
   pull(filename){
     this.trxStatus.queue.push(filename);
-    let spawn = this.adb.adbSpawn([["pull", `/storage/emulated/0/Android/data/com.sauzask.nicoid/files/nicoid/nicoid_cache/${filename}`, `/mnt/d/tmp/adb/${filename}`]]);
+    let spawn = this.adb.adbSpawn([["pull", `${this.path.source}${filename}`, `${this.path.to}${filename}`]]);
     spawn.stdout.on("data", (chunk)=>{
       this.finished++;
       this.trxStatus.queue.splice(this.trxStatus.queue.indexOf(filename),1);
