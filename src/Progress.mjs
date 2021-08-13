@@ -16,6 +16,9 @@ export default class Progress{
     process.stdout.write(this.progress);
   }
   reset(){
-    process.stdout.write(`\x1B[${this.cursorPos}B`);
+    //process.stdout.write(`\x1B[${this.cursorPos}B`);
+    for(let i=0; i < this.cursorPos; i++){
+      process.stdout.write(`\n\r\x1B[0K`);
+    }
   }
 }

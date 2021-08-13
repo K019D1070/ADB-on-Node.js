@@ -9,6 +9,12 @@ parentPort.on("message", (message)=>{
     case "filename":
       main.entry(message.message);
       break;
+    case "query":
+      parentPort.postMessage({
+        type:"response",
+        message:main.getQue()
+      });
+      break;
   }
 });
 
@@ -41,7 +47,7 @@ export default class Pull{
   }
   pull(filename){
     this.trxStatus.queue.push(filename);
-    let spawn = this.adb.adbSpawn([["pull", `${this.path.source}${filename}`, `${this.path.to}${filename}`]]);
+    let spawn = this.adb.adbSpawn([["pull", `${this.path.from}${filename}`, `${this.path.to}${filename}`]]);
     spawn.stdout.on("data", (chunk)=>{
       this.finished++;
       this.trxStatus.queue.splice(this.trxStatus.queue.indexOf(filename),1);
@@ -72,5 +78,8 @@ export default class Pull{
       whole:this.whole,
       finished:this.finished
     });
+  }
+  getQue(){
+    return this.que.length;
   }
 }
