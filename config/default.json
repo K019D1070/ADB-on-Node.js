@@ -2,7 +2,7 @@
   "adbPath":"./adb/",
   "adbName":"adb",
   "IPAddress": "192.168.1.90",
-  "maxQue": 20,
+  "maxQue": 3,
   "path":{
     "from":"/storage/emulated/0/Android/data/com.sauzask.nicoid/files/nicoid/nicoid_cache/",
     "to":"/mnt/m/Material/nicoid_cache/"

@@ -78,11 +78,13 @@ pull.on("message",(message)=>{
       prg.display();
       break;
     case "response":
-      if(spawn.exitCode != null && message.message == 0){
+      if(spawn.exitCode !== null && message.message == 0){
         if(deadMan < Date.now() - 1000){
+          prg.reset();
           console.log("There is no job.");
           process.exit();
         }else{
+          deadMan = Date.now();
           setInterval(()=>{
             pull.postMessage({
               type:"query"
