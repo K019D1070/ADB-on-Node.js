@@ -35,10 +35,6 @@ adb.setOnConnected(()=>{
               type:"filename",
               message:remoteFile[2]
             });
-          }else{
-            pull.postMessage({
-              type:"query"
-            });
           }
         });
       }).catch((err)=>{
@@ -50,6 +46,11 @@ adb.setOnConnected(()=>{
       });
     });
   });
+  setInterval(()=>{
+    pull.postMessage({
+      type:"query"
+    });
+  }, 1000);
 });
 process.on('SIGINT', function() {
   pull.terminate();
@@ -66,7 +67,7 @@ pull.on("message",(message)=>{
         prg.reset();
         if(inComplete.length > 0){
           console.log("Imcomplete files");
-          console.log(`/r${inComplete.join("  ")}`);
+          console.log(`\r${inComplete.join("  ")}`);
         }
         console.log("Transferring was completed.");
         pull.terminate();
@@ -83,15 +84,10 @@ pull.on("message",(message)=>{
           prg.reset();
           console.log("There is no job.");
           process.exit();
-        }else{
-          deadMan = Date.now();
         }
+      }else{
+        deadMan = Date.now();
       }
       break;
   }
 });
-setInterval(()=>{
-  pull.postMessage({
-    type:"query"
-  });
-}, 1000);

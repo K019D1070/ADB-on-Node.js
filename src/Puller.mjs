@@ -80,6 +80,6 @@ export default class Pull{
     });
   }
   getQue(){
-    return this.que.length;
+    return this.trxStatus.queue.length;
   }
 }
